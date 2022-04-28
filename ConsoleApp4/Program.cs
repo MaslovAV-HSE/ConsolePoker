@@ -130,6 +130,17 @@ namespace ConsoleApp4
             if (points[11] == 0)
                 PossibleVariants.Add(12);
         }
+
+        public bool Points_Exist()
+        {
+            bool ok = false;
+            foreach (var x in Points)
+            {
+                if (x == 0) ok = true;
+            }
+
+            return ok;
+        }
     }
     
     
@@ -214,26 +225,28 @@ namespace ConsoleApp4
                 x.points[12] = 30;
             }
 
-            if (x.combos.Count != 0)
+            if (x.Points_Exist())
             {
 
-
+                int t = 0;
                 do
                 {
+                    t++;
                     Console.WriteLine("Выберите комбинацию которую запишем: ");
                     ok = Int32.TryParse(Console.ReadLine(), out choise);
                     if (!ok)
                     {
                         Console.WriteLine("Некоректное значение");
+                        
                     }
 
-                    if (!x.combos.Contains(choise))
+                    if (!x.combos.Contains(choise) && ok)
                     {
                         ok = false;
                         Console.WriteLine("Этой комбинации нет в моем списке :с");
                     }
 
-                    if (x.points[choise - 1] != 0)
+                    if (x.points[choise - 1] != 0 && ok)
                     {
                         ok = false;
                         Console.WriteLine("А здесь уже есть значение с:");
@@ -296,6 +309,7 @@ namespace ConsoleApp4
                         if (choise == 11) x.points[choise - 1] = 25;
                         if (choise == 12) x.points[choise - 1] = x.cubes.Sum();
                     }
+                    if (t == 3) break;
                 } while (!ok);
             }
             else
@@ -392,8 +406,16 @@ namespace ConsoleApp4
             List<Player> PlayersList = createPlayers(players);
             for (int i = 0; i < 12; i++)
             {
+                bool check = true;
+                
                 foreach (var p in PlayersList)
                 {
+                    if (p.Points_Exist()) check = false;
+                }
+                if (check) break;
+                foreach (var p in PlayersList)
+                {
+                    Console.WriteLine($"Ход номер {i+1}");
                     p.GenerateCombination();
                     p.CheckForCombinations();
                     Console.WriteLine($"Ход делает игрок под именем {p.Name}");
@@ -407,10 +429,15 @@ namespace ConsoleApp4
                         Console.Write($"{x} ");
                     Console.WriteLine();
                     bool ok;
-                    Console.WriteLine("1.Перебросить кости \n Enter.Продолжить  ");
-                    if (Console.ReadLine() == "1")
+                    Console.WriteLine("1.Перебросить кости \n2.Пропустить ход\n Enter.Продолжить  ");
+                    string ch = Console.ReadLine();
+                    if (ch == "1")
                     {
                         ChacngeCombinations(p);
+                    }
+                    else if (ch == "2")
+                    {
+                        continue;
                     }
                     ChooseCombination(p);
                     Table(p);
