@@ -122,7 +122,7 @@ namespace ConsoleApp4
             PossibleVariants = new List<int>();
             foreach (var x in items)
             {
-                if (!PossibleVariants.Contains(x) && Points[x] == 0)
+                if (!PossibleVariants.Contains(x) && Points[x-1] == 0)
                 {
                     PossibleVariants.Add(x);
                 }
@@ -205,6 +205,7 @@ namespace ConsoleApp4
 
         static void Table(Player x)
         {
+            
             List<int> points = x.points;
             Console.WriteLine("Индексы     1   2   3   4   5   6          7    8      9         10           11        12");
             Console.WriteLine("Комбинации  1   2   3   4   5   6  Бонус Покер Каре ФулХауз ДлинныйСтрит КороткийСтрит Любая   Итог");
@@ -227,89 +228,99 @@ namespace ConsoleApp4
 
             if (x.Points_Exist())
             {
-
-                int t = 0;
                 do
                 {
-                    t++;
-                    Console.WriteLine("Выберите комбинацию которую запишем: ");
+                    Console.WriteLine("Выберите комбинацию которую запишем:\nДля пропуска хода введите -1 ");
+                    
                     ok = Int32.TryParse(Console.ReadLine(), out choise);
                     if (!ok)
                     {
                         Console.WriteLine("Некоректное значение");
-                        
+                        continue;
                     }
-
-                    if (!x.combos.Contains(choise) && ok)
+                    if (choise == -1) break;
+                    if (choise < 1 || choise > 12)
+                    {
+                       Console.WriteLine("Некоректное значение");
+                       continue;
+                    }
+                    if (!x.combos.Contains(choise))
                     {
                         ok = false;
                         Console.WriteLine("Этой комбинации нет в моем списке :с");
+                        continue;
                     }
-
-                    if (x.points[choise - 1] != 0 && ok)
+                    if (x.points[choise - 1] != 0)
                     {
-                        ok = false;
-                        Console.WriteLine("А здесь уже есть значение с:");
+                         ok = false;
+                         Console.WriteLine("А здесь уже есть значение с:");
+                         continue;
+                    }
+                    if (1 <= choise && choise <= 6)
+                    { 
+                        int count = 0;
+                        foreach (var i in x.cubes)
+                        {
+                            if (i == choise) count++;
+                        }
+                        x.points[choise - 1] = count * choise;
+                        ok = true;
                     }
 
-                    if (ok)
+                    if (choise == 7)
                     {
-                        if (1 <= choise && choise <= 6)
-                        {
-                            int count = 0;
-                            foreach (var i in x.cubes)
-                            {
-                                if (i == choise) count++;
-                            }
-
-                            x.points[choise - 1] = count * choise;
-                        }
-
-                        if (choise == 7)
-                        {
-                            x.points[choise - 1] = x.cubes[0] * 5;
-                        }
-
-                        if (choise == 8)
-                        {
-                            Dictionary<int, int> p = new Dictionary<int, int>();
-                            foreach (var i in x.cubes)
-                            {
-                                if (p.ContainsKey(i)) p[i] += 1;
-                                else p[i] = 1;
-                            }
-
-                            foreach (var i in p)
-                                if (i.Value == 4)
-                                    x.points[choise - 1] = i.Key * 5;
-
-                        }
-
-                        if (choise == 9)
-                        {
-                            Dictionary<int, int> p = new Dictionary<int, int>();
-                            foreach (var i in x.cubes)
-                            {
-                                if (p.ContainsKey(i)) p[i] += 1;
-                                else p[i] = 1;
-                            }
-
-                            foreach (var i in p)
-                            {
-                                if (i.Value == 3)
-                                    x.points[choise - 1] += i.Key * 3;
-                                if (i.Value == 2)
-                                    x.points[choise - 1] += i.Key * 2;
-                            }
-
-
-                        }
-
-                        if (choise == 10) x.points[choise - 1] = 30;
-                        if (choise == 11) x.points[choise - 1] = 25;
-                        if (choise == 12) x.points[choise - 1] = x.cubes.Sum();
+                        x.points[choise - 1] = x.cubes[0] * 5;
+                        ok = true;
                     }
-                    if (t == 3) break;
+
+                    if (choise == 8)
+                    {
+                        Dictionary<int, int> p = new Dictionary<int, int>();
+                        foreach (var i in x.cubes)
+                        {
+                            if (p.ContainsKey(i)) p[i] += 1;
+                            else p[i] = 1;
+                        }
+                        foreach (var i in p)
+                            if (i.Value == 4)
+                                x.points[choise - 1] = i.Key * 5;
+                        ok = true;
+                    }
+
+                    if (choise == 9)
+                    {
+                        ok = true;
+                        Dictionary<int, int> p = new Dictionary<int, int>();
+                        foreach (var i in x.cubes)
+                        {
+                            if (p.ContainsKey(i)) p[i] += 1;
+                            else p[i] = 1;
+                        }
+                        foreach (var i in p)
+                        {
+                            if (i.Value == 3)
+                                x.points[choise - 1] += i.Key * 3;
+                            if (i.Value == 2)
+                                x.points[choise - 1] += i.Key * 2;
+                        }
+                    }
+
+                    if (choise == 10)
+                    {
+                        ok = true;
+                        x.points[choise - 1] = 30;
+                    }
+                        
+                    if (choise == 11)
+                    {
+                        ok = true;
+                        x.points[choise - 1] = 25;
+                    }
+                    if (choise == 12)
+                    {
+                        ok = true;
+                        x.points[choise - 1] = x.cubes.Sum();
+                    }
                 } while (!ok);
             }
             else
@@ -343,8 +354,9 @@ namespace ConsoleApp4
             int max = 0;
             foreach (var p in players)
             {
-
+                
                 if (max < p.points.Sum()) max = p.points.Sum();
+                Console.WriteLine(p.Name);
                 Table(p);
             }
 
@@ -364,12 +376,13 @@ namespace ConsoleApp4
             int tek = 0;
             while (tek < trys)
             {
-                Console.WriteLine("Введите номера костей, которые хотите перебросить через пробел");
+                Console.WriteLine("Введите номера костей, которые хотите перебросить через пробел (Если хотите вернуться, введите -1)");
                 try
                 {
                     Random random = new Random();
                     List<int> player_cubes = x.cubes;
                     string[] nums = Console.ReadLine().Split(" ");
+                    if (nums[0] == "-1") break;
                     foreach (var i in nums)
                     {
                         player_cubes[Int32.Parse(i) - 1] = random.Next(1, 7);
@@ -408,6 +421,7 @@ namespace ConsoleApp4
             {
                 bool check = true;
                 
+                
                 foreach (var p in PlayersList)
                 {
                     if (p.Points_Exist()) check = false;
@@ -428,7 +442,6 @@ namespace ConsoleApp4
                     foreach (var x in p.combos)
                         Console.Write($"{x} ");
                     Console.WriteLine();
-                    bool ok;
                     Console.WriteLine("1.Перебросить кости \n2.Пропустить ход\n Enter.Продолжить  ");
                     string ch = Console.ReadLine();
                     if (ch == "1")
